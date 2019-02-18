@@ -1,0 +1,66 @@
+%Vijhn Austin
+%Lab 7
+clear;
+clc;
+%Constant Declaration
+Cm=300;
+targetppm=75; 
+D=3*10^-3; 
+%Setting up X dimension array:
+%dx spacing 25m- rather large
+dx=25;
+%Far boundary at 4km, point contamination at 1km
+L=4000;
+x=0:dx:L;
+%Setting up Y dimension array:
+dy=25;
+Ly=4000;
+y=0:dy:Ly;
+%Since Y and X are symmetrical, and same length array
+spaceIndex=length(y);
+%Setting up Time array
+%6 years runtime 
+dt=100000;
+T=60*60*24*365*6;
+t=0:dt:T; 
+timeIndex=length(t);
+%Taken from lab 6
+%Scaling definitions
+Nu=(D*dt)/(2*dx^2);%Diffusion Term
+% Ve=(v*dt)/(2*dx);%Advection Term
+%Instantiate both matrices 
+C=zeros(spaceIndex); 
+Cnew=C;
+
+C(80,40)=Cm; 
+for i=1:timeIndex
+    for k=2:spaceIndex-1
+        for j=2:spaceIndex-1
+            Cnew(j,k)=C(j,k)+Nu*(C(j-1,k)-2*C(j,k)+C(j+1,k))+Nu*(C(j,k-1)-2*C(j,k)+C(j,k+1));
+            Cnew(j,1)=C(j,1)+Nu*(C(j,spaceIndex)-2*C(j,1)+C(j,2));
+            Cnew(j,spaceIndex)=C(j,spaceIndex)+Nu*(C(j,spaceIndex-1)-2*C(j,spaceIndex)+C(j,1));
+        end
+        Cnew(80,40)=Cm;
+        Cnew(1,k)=C(1,k)+Nu*(C(spaceIndex,k)-2*C(1,k)+C(2,k)); 
+        Cnew(spaceIndex,k)=C(spaceIndex,k)+Nu*(C(spaceIndex,k)-2*C(spaceIndex,k)+C(1,k));
+ 
+    end
+   Cnew(80,40)=Cm;
+   C=Cnew;
+   %If the middle of the river reaches a ppm of 75, end the program and 
+   %print the index in order to figure out the time at which this occurs
+   %(dt*index)=time
+   if C(80,1)>=75;
+       disp(i)
+       break;
+   end
+end
+
+
+v=[0:5:300];
+figure
+
+contour(C,v)
+
+colorbar
+            
